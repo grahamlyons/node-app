@@ -1,6 +1,7 @@
 var nano = require('./lib/nano'),
     View = require('./lib/view'),
-    app = nano.app;
+    app = nano.app,
+    options = {};
 
 app.get('/', function(request, response) {
     var view = new View('./views/index.html');
@@ -13,4 +14,6 @@ app.get('/', function(request, response) {
     });
 });
 
-nano.start();
+options.PORT = process.env.PORT || 8080;
+
+nano.start(options);
