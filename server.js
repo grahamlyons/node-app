@@ -4,15 +4,8 @@ var nano = require('./lib/nano'),
     options = {};
 
 app.get('/', function(request, response) {
-    return 'Good Morning';
-//    var view = new View('./views/index.html');
-//    view.then(function(view){
-//        response.writeHead(200, {'Content-type': 'text/html'});
-//        response.end(view.render());
-//    },
-//    function(){
-//        nano.handleError(request, response);
-//    });
+    var view = new View('./views/index.html');
+    return view.render();
 });
 
 options.PORT = process.env.PORT || 8080;
