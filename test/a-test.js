@@ -3,25 +3,27 @@ var litmus = require('litmus'),
 
 exports.test = new litmus.Test('Test promise handling', function() {
 
-    function delay(t) {
+    function delay(t, value) {
         var p = new Promise();
 
-        setTimeout(function() {
+        setTimeout(function(){
             if(t%2 === 0) {
-                p.resolve();
+                p.resolve(value);
             } else {
-                p.reject();
+                p.reject(value);
             }
         },t);
         
         return p;
     }
 
-    this.plan(2);
+    this.plan(3);
 
     var test = this,
         successDesc = 'Promise resolved',
         failureDesc = 'Promise failed',
+        successWithValueDesc = 'Promise resolved with value',
+        failureWithValueDesc = 'Promise failed with value',
         handleSuccess = this.async('promise success', function(handle) {
             delay(100).then(
                 function() {
@@ -42,6 +44,19 @@ exports.test = new litmus.Test('Test promise handling', function() {
                 },
                 function() {
                     test.pass(failureDesc);
+                    handle.resolve();
+                }
+            );
+        }),
+        handleSuccessWithValue = this.async('promise success with value', function(handle) {
+            var expected = 200;
+            delay(100, expected).then(
+                function(returnVal) {
+                    test.is(returnVal, expected, successWithValueDesc);
+                    handle.resolve();
+                },
+                function() {
+                    test.fail(successWithValueDesc);
                     handle.resolve();
                 }
             );
