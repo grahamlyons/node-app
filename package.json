@@ -1,11 +1,11 @@
 {
     "name":"gram.no.de",
-    "version":0.0.2,
+    "version":"0.0.2",
     "main":"server.js",
     "dependencies": {
         "underscore": ">= 1.2.0"
     },
-    scripts: {
-      test: "make test"
+    "scripts": {
+      "test": "make test"
     }
 }
