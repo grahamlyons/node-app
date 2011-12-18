@@ -37,7 +37,7 @@ function increment(start, finish, delta) {
 
 exports.test = new litmus.Test('Test promise handling', function() {
 
-    this.plan(9);
+    this.plan(10);
 
     var test = this,
         successDesc = 'Promise resolved',
@@ -148,4 +148,17 @@ exports.test = new litmus.Test('Test promise handling', function() {
             p.then();
         }, /error/i, 'Can\'t use promise once it\'s been resolved');
 
+        this.async('promises can be chained', function(handle) {
+            var input = 10,
+                expected = input*2;
+
+            delay(100, input)
+            .then(function(result){
+                return result*2;
+            })
+            .then(function(output){
+                test.is(output, expected, 'Get the result of chained promise');
+                handle.resolve();
+            });
+        });
 });
