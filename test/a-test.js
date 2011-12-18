@@ -37,7 +37,7 @@ function increment(start, finish, delta) {
 
 exports.test = new litmus.Test('Test promise handling', function() {
 
-    this.plan(6);
+    this.plan(9);
 
     var test = this,
         successDesc = 'Promise resolved',
@@ -45,7 +45,8 @@ exports.test = new litmus.Test('Test promise handling', function() {
         successWithValueDesc = 'Promise resolved with value',
         failureWithValueDesc = 'Promise failed with value',
         progressDesc = 'Promise called progress handler',
-        multiProgressDesc = 'Got expected number of progress reports';
+        multiProgressDesc = 'Got expected number of progress reports',
+        p;
 
         this.async('promise success', function(handle) {
             delay(100).then(
@@ -134,5 +135,17 @@ exports.test = new litmus.Test('Test promise handling', function() {
             );
 
         });
+
+        p = new Promise();
+        p.resolve();
+        this.throwsOk(function() {
+            p.resolve();
+        }, /error/i, 'Promise can\'t be resolved more than once');
+        this.throwsOk(function() {
+            p.reject();
+        }, /error/i, 'Can\'t reject promise once it\'s been resolved');
+        this.throwsOk(function() {
+            p.then();
+        }, /error/i, 'Can\'t use promise once it\'s been resolved');
 
 });
