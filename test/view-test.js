@@ -20,22 +20,30 @@ exports.test = new litmus.Test('Testing the view', function() {
     makeTemplateFile(filename, tmpl);
     makeTemplateFile(filenameData, tmplData);
 
+    function testWithPossiblePromise(expected, obtained, message, handler) {
+        if(obtained.then) {
+            obtained.then(function(view) {
+                test.is(expected, view, message);
+                handler.resolve();
+            });
+        }
+        else {
+            test.is(expected, obtained, message + ', but not from promise');
+            handler.resolve();
+        }
+    }
+
     views.one = new View(filename);
     this.ok(views.one instanceof View, 'Can instantiate view');
 
     this.async('render template', function(handler) {
         var data = views.one.render();
 
-        if(data.then) {
-            data.then(function(view) {
-                test.is(tmpl, view, 'Got expected text from promise');
-                handler.resolve();
-            });
-        }
-        else {
-            test.is(tmpl, data, 'Got expected text, but not from promise');
-            handler.resolve();
-        }
+        testWithPossiblePromise(
+            tmpl, 
+            data, 
+            'Got expected text from promise', 
+            handler); 
     });
 
     views.two = new View(filename);
@@ -50,16 +58,11 @@ exports.test = new litmus.Test('Testing the view', function() {
     this.async('pass data in constructor', function(handler) {
         var data = views.three.render();
 
-        if(data.then) {
-            data.then(function(view) {
-                test.is('<h1>Hello gram</h1>', view, 'Got expected text with data replaced');
-                handler.resolve();
-            });
-        }
-        else {
-            test.is('<h1>Hello gram</h1>', data, 'Got expected text with data replaced, but not from promise');
-            handler.resolve();
-        }
+        testWithPossiblePromise(
+            '<h1>Hello gram</h1>', 
+            data, 
+            'Got expected text with data replaced', 
+            handler); 
 
     });
 
@@ -68,32 +71,22 @@ exports.test = new litmus.Test('Testing the view', function() {
     this.async('set data with function on instance', function(handler) {
         var data = views.four.render();
 
-        if(data.then) {
-            data.then(function(view) {
-                test.is('<h1>Hello gram</h1>', view, 'Got expected text with data set by function');
-                handler.resolve();
-            });
-        }
-        else {
-            test.is('<h1>Hello gram</h1>', data, 'Got expected text with data set by function, but not from promise');
-            handler.resolve();
-        }
+        testWithPossiblePromise(
+            '<h1>Hello gram</h1>', 
+            data, 
+            'Got expected text with data set by function', 
+            handler); 
     });
 
     views.five = new View(filenameData);
     this.async('set data with function on instance', function(handler) {
         var data = views.five.render({name: 'gram'});
 
-        if(data.then) {
-            data.then(function(view) {
-                test.is('<h1>Hello gram</h1>', view, 'Got expected text with data passed to render');
-                handler.resolve();
-            });
-        }
-        else {
-            test.is('<h1>Hello gram</h1>', data, 'Got expected text with data passed to render, but not from promise');
-            handler.resolve();
-        }
+        testWithPossiblePromise(
+            '<h1>Hello gram</h1>', 
+            data, 
+            'Got expected text with data passed to render', 
+            handler); 
     });
 
 });
