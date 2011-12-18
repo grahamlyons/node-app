@@ -45,7 +45,9 @@ exports.test = new litmus.Test('Test promise handling', function() {
         successWithValueDesc = 'Promise resolved with value',
         failureWithValueDesc = 'Promise failed with value',
         progressDesc = 'Promise called progress handler',
-        handleSuccess = this.async('promise success', function(handle) {
+        multiProgressDesc = 'Got expected number of progress reports';
+
+        this.async('promise success', function(handle) {
             delay(100).then(
                 function() {
                     test.pass(successDesc);
@@ -56,8 +58,9 @@ exports.test = new litmus.Test('Test promise handling', function() {
                     handle.resolve();
                 }
             );
-        }),
-        handleFailure = this.async('promise fail', function(handle) {
+        });
+
+        this.async('promise fail', function(handle) {
             delay(101).then(
                 function() {
                     test.fail(failureDesc);
@@ -68,8 +71,9 @@ exports.test = new litmus.Test('Test promise handling', function() {
                     handle.resolve();
                 }
             );
-        }),
-        handleSuccessWithValue = this.async('promise success with value', function(handle) {
+        });
+
+        this.async('promise success with value', function(handle) {
             var expected = 200;
             delay(100, expected).then(
                 function(returnVal) {
@@ -81,8 +85,9 @@ exports.test = new litmus.Test('Test promise handling', function() {
                     handle.resolve();
                 }
             );
-        }),
-        handleFailureWithValue = this.async('promise failure with value', function(handle) {
+        });
+
+        this.async('promise failure with value', function(handle) {
             var expected = 500;
             delay(101, expected).then(
                 function() {
@@ -94,8 +99,9 @@ exports.test = new litmus.Test('Test promise handling', function() {
                     handle.resolve();
                 }
             );
-        }),
-        handleProgress = this.async('promise progress callback', function(handle) {
+        });
+
+        this.async('promise progress callback', function(handle) {
             var start = 0,
                 finish = 100,
                 expectedProgress = 50;
@@ -108,8 +114,9 @@ exports.test = new litmus.Test('Test promise handling', function() {
                     handle.resolve();
                 }
             );
-        }),
-        handleMultiProgress = this.async('promise with multi progress callback', function(handle) {
+        });
+
+        this.async('promise with multi progress callback', function(handle) {
             var start = 0,
                 finish = 100,
                 delta = 10,
@@ -117,7 +124,7 @@ exports.test = new litmus.Test('Test promise handling', function() {
             
             increment(start, finish, delta).then(
                 function() {
-                    test.is(progressCount, ((finish/delta)-1), 'Got expected number of progress reports');
+                    test.is(progressCount, ((finish/delta)-1), multiProgressDesc);
                     handle.resolve();
                 },
                 function() { },
