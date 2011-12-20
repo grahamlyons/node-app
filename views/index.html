@@ -3,9 +3,47 @@
     <head>
         <title>gram.no.de</title>
         <link rel="stylesheet" type="text/css" href="static/style.css">
+        <script type="text/javascript" src="static/require.js"></script>
     </head>
     <body>
         <h1>gram.no.de</h1>
+        <div id="draw"></div>
         <p>Powered by <a href="http://nodejs.org/">nodejs.org</a></p>
+        <script type="text/javascript">
+        require({
+            baseUrl:'static/',
+            paths: {
+                jquery: 'jquery.1.6.2.min'
+            },
+            priority: ['jquery']
+        });
+        require(['jquery', 'bezier', 'graph-view'], function ($, bezier, graph) {
+
+            function randomCurve (maxX, maxY, numPoints) {
+                var x, y;
+                for(; numPoints > 0; numPoints--) {
+                    x = Math.floor(Math.random() * maxX);
+                    y = Math.floor(Math.random() * maxY);
+                    bezier.addPoint([x, y]);
+                }
+            }
+
+            randomCurve(850, 450, 10);
+
+            function getCoordinates (resolution) {
+                var coords = [],
+                    t;
+                for(t=0; t <= 1; t += resolution) {
+                    coords.push(bezier.getCoords(t));
+                }
+                return coords;
+            }
+
+            graph.coords = getCoordinates(0.0005);
+            graph.markers = bezier.getPoints();
+            graph.render();
+
+        });
+        </script>
     </body>
 </html>
