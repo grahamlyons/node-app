@@ -1,5 +1,7 @@
 var litmus = require('litmus'),
-    nano = require('../lib/nano');
+    nano = require('../lib/nano'),
+    fs = require('fs'),
+    crypto = require('crypto');
 
 function mockRequest(method, url) {
     return {
@@ -10,7 +12,38 @@ function mockRequest(method, url) {
 
 exports.test = new litmus.Test('Test nano framework', function() {
 
-    var response = new nano.Response();
+    var response = new nano.Response(),
+        test = this;
+
+    function isNotFound(response, message) {
+
+        test.is(
+            response.body,
+            'Not found', 
+            'Not found in body: ' + message
+        );
+        test.is(
+            response.status,
+            404, 
+            'Status is 404: ' + message
+        );
+    }
+
+    function isSuccess(response, message, body) {
+
+        test.is(
+            response.status,
+            200, 
+            'Status is 200: ' + message);
+
+        if(body) {
+            test.is(
+                response.body,
+                body, 
+                'Expected body returned: ' + message);
+        }
+
+    }
 
     this.ok(response.setBody, 'Response has setBody method');
 
@@ -39,37 +72,87 @@ exports.test = new litmus.Test('Test nano framework', function() {
             return 'Hello';
         });
 
+        /**
+         * Test simple route
+         */
         response = app.dispatch(mockRequest('GET', '/'), new nano.Response());
 
-        this.is(
-            response.body,
-            'Hello', 
-            'Matched route returns content define by function');
-
-        this.is(
-            response.status,
-            200, 
-            'Matched route returns 200 status');
+        isSuccess(response, 'Matched route returning simple content', 'Hello');
 
         response = app.dispatch(mockRequest('HEAD', '/'), new nano.Response()), 
 
-        this.is(
-            response.status,
-            200, 
-            'Route defined for get is also served for head request');
-
+        isSuccess(response, 'Route defined for get is also served for head request');
+        
+        /**
+         * Test unmatched routes
+         */
         response = app.dispatch(mockRequest('GET', '/notmatched'), new nano.Response()), 
-        this.is(
-            response.body,
-            'Not found', 
-            'Unmatched route gives not found message in body'
-        );
-        this.is(
-            response.status,
-            404, 
-            'Unmatched route gives 404 not found status'
-        );
+        isNotFound(response, 'Unmatched route');
+
+        response = app.dispatch(mockRequest('POST', '/'), new nano.Response());
+        isNotFound(response, 'POST to GET route');
+        response = app.dispatch(mockRequest('PUT', '/'), new nano.Response());
+        isNotFound(response, 'PUT to GET route');
+        response = app.dispatch(mockRequest('DELETE', '/'), new nano.Response());
+        isNotFound(response, 'DELETE to GET route');
 
         handler.resolve();
+    });
+
+    this.async('test other verbs', function(handler) {
+        var app = nano.app,
+            test = this,
+            response;
+
+        app.post('/', function() {
+            return 'Done';
+        });
+
+        app.put('/', function() {
+            return 'Done';
+        });
+
+        app.del('/', function() {
+            return 'Done';
+        });
+
+        response = app.dispatch(mockRequest('POST', '/'), new nano.Response());
+        isSuccess(response, 'Matched POST request', 'Done');
+
+        response = app.dispatch(mockRequest('PUT', '/'), new nano.Response());
+        isSuccess(response, 'Matched PUT request', 'Done');
+
+        response = app.dispatch(mockRequest('DELETE', '/'), new nano.Response());
+        isSuccess(response, 'Matched DELETE request', 'Done');
+
+        handler.resolve();
+    });
+
+    this.async('test static route', function(handler) {
+
+        var app = nano.app,
+            test = this,
+            filename = __dirname + '/test.css',
+            content = 'body{ font-family: Comic Sans; }';
+            response;
+
+        fs.writeFileSync(filename, content);
+
+        app.addStaticRoute('/style/', __dirname);
+
+        response = app.dispatch(mockRequest('GET', '/style/test.css'), new nano.Response());
+
+        if(response.body.then) {
+            response.body.then(function(data) {
+                test.is(content, data, 'Got correct stylesheet');
+                test.is(response.headers['Content-length'], content.length, 'Correct content length was set');
+                handler.resolve();
+            }, function(err) {
+                handler.reject();
+            });
+        }
+
+        test.is(response.headers['Content-Type'], 'text/css', 'Correct MIME type was set');
+
     });
 });
