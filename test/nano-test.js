@@ -137,14 +137,9 @@ exports.test = new litmus.Test('Test nano framework', function() {
             test = this,
             filename = __dirname + '/test.css',
             content = 'body{ font-family: Comic Sans; }',
-            response,
-            expectedEtag,
-            hash;
+            response;
 
         fs.writeFileSync(filename, content);
-        hash = crypto.createHash('md5');
-        hash.update(content);
-        expectedEtag = hash.digest('hex');
 
         app.addStaticRoute('/style/', __dirname);
 
@@ -161,5 +156,39 @@ exports.test = new litmus.Test('Test nano framework', function() {
 
         test.is(response.headers['Content-Type'], 'text/css', 'Correct MIME type was set');
 
+    });
+
+    this.async('test etag and content length', function(handler) {
+        var app = nano.app,
+            expectedEtag,
+            hash,
+            content = 'Hello¬˚∆ƒ¬˚∆®',
+            mockResponse;
+
+        hash = crypto.createHash('md5');
+        hash.update(content);
+        expectedEtag = hash.digest('hex');
+
+        app.get('/etag', function() {
+            return content;
+        });
+
+        response = app.dispatch(mockRequest('GET', '/etag'), new nano.Response());
+        mockResponse = response._response = {
+            writeHead: function(status, headers) {
+                this.status = status;
+                this.headers = headers;
+            },
+            end: function(body) {
+                this.body = content;
+            }
+        };
+
+        response.send();
+        this.is(mockResponse.status, 200, 'Got 200 response');
+        this.is(mockResponse.headers['Etag'], expectedEtag, 'Got expected etag in response');
+        this.is(mockResponse.headers['Content-length'], Buffer.byteLength(content), 'Got corrent content length in response');
+
+        handler.resolve();
     });
 });
