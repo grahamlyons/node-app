@@ -46,6 +46,9 @@ exports.test = new litmus.Test('Test nano framework', function() {
     }
 
     this.ok(response.setBody, 'Response has setBody method');
+    this.ok(response.setContentType, 'Response has setContentType method');
+    this.ok(response.setHeader, 'Response has setHeader method');
+    this.ok(response.send, 'Response has send method');
 
     this.async('test basic app instantiation', function(handler) {
 
@@ -133,10 +136,15 @@ exports.test = new litmus.Test('Test nano framework', function() {
         var app = nano.app,
             test = this,
             filename = __dirname + '/test.css',
-            content = 'body{ font-family: Comic Sans; }';
-            response;
+            content = 'body{ font-family: Comic Sans; }',
+            response,
+            expectedEtag,
+            hash;
 
         fs.writeFileSync(filename, content);
+        hash = crypto.createHash('md5');
+        hash.update(content);
+        expectedEtag = hash.digest('hex');
 
         app.addStaticRoute('/style/', __dirname);
 
@@ -145,7 +153,6 @@ exports.test = new litmus.Test('Test nano framework', function() {
         if(response.body.then) {
             response.body.then(function(data) {
                 test.is(content, data, 'Got correct stylesheet');
-                test.is(response.headers['Content-length'], content.length, 'Correct content length was set');
                 handler.resolve();
             }, function(err) {
                 handler.reject();
