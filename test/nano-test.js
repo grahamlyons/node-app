@@ -4,6 +4,7 @@ var litmus = require('litmus'),
     crypto = require('crypto');
 
 function mockRequest(method, url, headers) {
+    var headers = headers ? headers : {};
     return {
         method: method.toUpperCase(),
         url: url,
@@ -175,7 +176,8 @@ exports.test = new litmus.Test('Test nano framework', function() {
             return content;
         });
 
-        response = app.dispatch(mockRequest('GET', '/etag'), new nano.Response());
+        request = mockRequest('GET', '/etag');
+        response = app.dispatch(request, new nano.Response());
         mockResponse = response._response = {
             writeHead: function(status, headers) {
                 this.status = status;
@@ -186,7 +188,7 @@ exports.test = new litmus.Test('Test nano framework', function() {
             }
         };
 
-        response.send();
+        response.send(request);
         this.is(mockResponse.status, 200, 'Got 200 response');
         this.is(mockResponse.headers['Etag'], expectedEtag, 'Got expected etag in response');
         this.is(mockResponse.headers['Content-length'], Buffer.byteLength(content), 'Got corrent content length in response');
@@ -209,6 +211,24 @@ exports.test = new litmus.Test('Test nano framework', function() {
         this.nok(mockResponse.body, 'No body in 304 response');
         this.is(mockResponse.headers['Etag'], expectedEtag, 'Got expected etag in response');
         this.is(mockResponse.headers['Content-length'], Buffer.byteLength(content), 'Got corrent content length in response');
+
+        request = mockRequest('HEAD', '/etag');
+        response = app.dispatch(request, new nano.Response());
+        mockResponse = response._response = {
+            writeHead: function(status, headers) {
+                this.status = status;
+                this.headers = headers;
+            },
+            end: function(body) {
+                this.body = body;
+            }
+        };
+
+        response.send(request);
+        this.is(mockResponse.status, 200, 'Got 200 response');
+        this.is(mockResponse.headers['Etag'], expectedEtag, 'Got expected etag in response');
+        this.is(mockResponse.headers['Content-length'], Buffer.byteLength(content), 'Got corrent content length in response');
+        this.nok(mockResponse.body, 'No body in response to HEAD request');
 
         handler.resolve();
     });
