@@ -10,35 +10,66 @@ function mockRequest(method, url) {
 
 exports.test = new litmus.Test('Test nano framework', function() {
 
-    var app = nano.app
+    var response = new nano.Response();
+
+    this.ok(response.setBody, 'Response has setBody method');
+
+    this.async('test basic app instantiation', function(handler) {
+
+        var app = nano.app
         test = this;
 
-    this.ok(app instanceof nano.App, 'nano.app is instance of the App object');
-    this.ok(app.get, 'app has get handler');
-    this.ok(app.post, 'app has post handler');
-    this.ok(app.put, 'app has put handler');
-    this.ok(app.del, 'app has del handler');
+        this.ok(app instanceof nano.App, 'nano.app is instance of the App object');
+        this.ok(app.get, 'app has get handler');
+        this.ok(app.post, 'app has post handler');
+        this.ok(app.put, 'app has put handler');
+        this.ok(app.del, 'app has del handler');
 
-    app.get('/', function(request, response) {
-        return 'Hello';
+        handler.resolve();
     });
 
-    this.is(
-        app.dispatch(mockRequest('GET', '/'), {}), 
-        'Hello', 
-        'Matched route returns content define by function');
+    this.async('test simple route', function(handler) {
+        var app = nano.app,
+            test = this,
+            response;
 
-    this.is(
-        app.dispatch(mockRequest('HEAD', '/'), {}), 
-        'Hello', 
-        'Route defined for get is also served for head request');
+        app.get('/', function(request, response) {
+            test.ok(request, 'Callback handler gets passed request');
+            test.ok(response, 'Callback handler gets passed response');
+            return 'Hello';
+        });
 
-    app.dispatch(
-        mockRequest('GET', '/notmatched'), 
-        {writeHead:function(statusCode, headers) {
-            test.is(
-                statusCode,
-                404, 
-                'Unmatched route gives not found');
-        }, end:function() {}});
+        response = app.dispatch(mockRequest('GET', '/'), new nano.Response());
+
+        this.is(
+            response.body,
+            'Hello', 
+            'Matched route returns content define by function');
+
+        this.is(
+            response.status,
+            200, 
+            'Matched route returns 200 status');
+
+        response = app.dispatch(mockRequest('HEAD', '/'), new nano.Response()), 
+
+        this.is(
+            response.status,
+            200, 
+            'Route defined for get is also served for head request');
+
+        response = app.dispatch(mockRequest('GET', '/notmatched'), new nano.Response()), 
+        this.is(
+            response.body,
+            'Not found', 
+            'Unmatched route gives not found message in body'
+        );
+        this.is(
+            response.status,
+            404, 
+            'Unmatched route gives 404 not found status'
+        );
+
+        handler.resolve();
+    });
 });
