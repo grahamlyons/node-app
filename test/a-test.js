@@ -37,7 +37,7 @@ function increment(start, finish, delta) {
 
 exports.test = new litmus.Test('Test promise handling', function() {
 
-    this.plan(10);
+    this.plan(11);
 
     var test = this,
         successDesc = 'Promise resolved',
@@ -144,9 +144,6 @@ exports.test = new litmus.Test('Test promise handling', function() {
         this.throwsOk(function() {
             p.reject();
         }, /error/i, 'Can\'t reject promise once it\'s been resolved');
-        this.throwsOk(function() {
-            p.then();
-        }, /error/i, 'Can\'t use promise once it\'s been resolved');
 
         this.async('promises can be chained', function(handle) {
             var input = 10,
@@ -160,5 +157,33 @@ exports.test = new litmus.Test('Test promise handling', function() {
                 test.is(output, expected, 'Get the result of chained promise');
                 handle.resolve();
             });
+        });
+
+        this.async('promise is resolved immediately', function(handler) {
+            var p = new Promise(),
+                test = this;
+
+            p.resolve(42);
+
+            p.then(function(meaningOfLife) {
+                test.is(meaningOfLife, 42, 'Got data from calling "then" after promise was resolved');
+            });
+
+            handler.resolve();
+        });
+
+        this.async('promise is rejected immediately', function(handler) {
+            var p = new Promise(),
+                test = this;
+
+            p.reject(41);
+
+            p.then(
+                function(){},
+                function(notMeaningOfLife) {
+                    test.is(notMeaningOfLife, 41, 'Got data from calling "then" after promise was rejected');
+            });
+
+            handler.resolve();
         });
 });
