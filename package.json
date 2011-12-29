@@ -5,6 +5,9 @@
     "dependencies": {
         "underscore": ">= 1.2.0"
     },
+    "devDependencies": {
+        "litmus" :  ">=0.4.0"
+    },
     "scripts": {
       "test": "make test"
     }
