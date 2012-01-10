@@ -158,6 +158,10 @@ exports.test = new litmus.Test('Test nano framework', function() {
 
         test.is(response.headers['Content-Type'], 'text/css', 'Correct MIME type was set');
 
+        test.finished.then(function() {
+            fs.unlinkSync(filename);
+        });
+
     });
 
     this.async('test etag and content length', function(handler) {

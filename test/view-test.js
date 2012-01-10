@@ -79,7 +79,7 @@ exports.test = new litmus.Test('Testing the view', function() {
     });
 
     views.five = new View(filenameData);
-    this.async('set data with function on instance', function(handler) {
+    this.async('pass data into render function', function(handler) {
         var data = views.five.render({name: 'gram'});
 
         testWithPossiblePromise(
@@ -87,6 +87,11 @@ exports.test = new litmus.Test('Testing the view', function() {
             data, 
             'Got expected text with data passed to render', 
             handler); 
+    });
+
+    this.finished.then(function(){
+        fs.unlinkSync(filename);
+        fs.unlinkSync(filenameData);
     });
 
 });
