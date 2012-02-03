@@ -37,14 +37,14 @@ function increment(start, finish, delta) {
 
 exports.test = new litmus.Test('Test promise handling', function() {
 
-    this.plan(11);
+    this.plan(12);
 
     var test = this,
         successDesc = 'Promise resolved',
         failureDesc = 'Promise failed',
         successWithValueDesc = 'Promise resolved with value',
         failureWithValueDesc = 'Promise failed with value',
-        progressDesc = 'Promise called progress handler',
+        progressDesc = 'Promise called progress handle',
         multiProgressDesc = 'Got expected number of progress reports',
         p;
 
@@ -159,7 +159,23 @@ exports.test = new litmus.Test('Test promise handling', function() {
             });
         });
 
-        this.async('promise is resolved immediately', function(handler) {
+        this.async('promises resolved immediately can be chained', function(handle) {
+            var p = new Promise(),
+                test = this;
+
+            p.resolve(42);
+
+            newPromise = p.then(function(meaningOfLife) {
+                return meaningOfLife * 2;
+            })
+            newPromise.then(function(twiceThat) {
+                test.is(twiceThat, 84, 'Got data from chaining "then" after promise was resolved');
+                handle.resolve();
+            });
+
+        });
+
+        this.async('promise is resolved immediately', function(handle) {
             var p = new Promise(),
                 test = this;
 
@@ -167,12 +183,12 @@ exports.test = new litmus.Test('Test promise handling', function() {
 
             p.then(function(meaningOfLife) {
                 test.is(meaningOfLife, 42, 'Got data from calling "then" after promise was resolved');
+                handle.resolve();
             });
 
-            handler.resolve();
         });
 
-        this.async('promise is rejected immediately', function(handler) {
+        this.async('promise is rejected immediately', function(handle) {
             var p = new Promise(),
                 test = this;
 
@@ -182,8 +198,8 @@ exports.test = new litmus.Test('Test promise handling', function() {
                 function(){},
                 function(notMeaningOfLife) {
                     test.is(notMeaningOfLife, 41, 'Got data from calling "then" after promise was rejected');
+                    handle.resolve();
             });
 
-            handler.resolve();
         });
 });
