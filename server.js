@@ -1,6 +1,6 @@
-var nano = require('./lib/nano'),
-    View = require('./lib/view'),
-    app = nano.app,
+var nada = require('nada'),
+    View = nada.View,
+    app = nada.app,
     options = {};
 
 app.get('/', function(request, response) {

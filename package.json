@@ -4,7 +4,8 @@
     "main":"server.js",
     "dependencies": {
         "underscore": ">= 1.2.0",
-        "A": ">= 0.0.1"
+        "A": ">= 0.0.1",
+        "nada": ">= 0.0.1"
     },
     "devDependencies": {
         "litmus" :  ">=0.4.0"
