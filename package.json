@@ -1,6 +1,6 @@
 {
     "name":"gram.no.de",
-    "version":"0.0.2",
+    "version":"0.0.3",
     "main":"server.js",
     "dependencies": {
         "underscore": ">= 1.2.0",
